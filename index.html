@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SURAJ FF SERVER | PRO EDITION</title>
+    <style>
+        :root {
+            --neon: #00ffcc;
+            --admin: #ff4b2b;
+            --bg: #05070a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #10141d 0%, var(--bg) 100%);
+            color: #fff;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        /* --- Login Screen --- */
+        #login-screen {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            padding: 50px; border-radius: 24px;
+            border: 1px solid var(--border);
+            width: 350px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-weight: 800; letter-spacing: 2px; color: var(--neon); text-shadow: 0 0 15px var(--neon); margin-bottom: 30px; }
+
+        input {
+            width: 100%; padding: 14px; margin-bottom: 15px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            border-radius: 12px; color: #fff; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 15px rgba(0,255,204,0.2); }
+
+        .btn {
+            width: 100%; padding: 15px; background: var(--neon);
+            color: #000; font-weight: 700; border: none; border-radius: 12px;
+            cursor: pointer; text-transform: uppercase; transition: 0.4s;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,255,204,0.5); }
+
+        /* --- Dashboard --- */
+        #dashboard-screen { display: none; width: 95%; max-width: 1100px; padding: 40px; text-align: center; }
+
+        .welcome-text {
+            font-size: 42px; font-weight: 800; margin-bottom: 10px;
+            background: linear-gradient(to right, #fff, var(--neon));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: zoomIn 0.6s ease;
+        }
+
+        .work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 40px; }
+
+        .task-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 30px; border-radius: 20px; cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: cardAppear 0.6s backwards;
+        }
+        .task-card:hover { border-color: var(--neon); transform: scale(1.05); }
+
+        .table-container { margin-top: 50px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); background: var(--glass); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(255,255,255,0.05); padding: 15px; color: var(--neon); text-align: left; }
+        td { padding: 15px; border-top: 1px solid var(--border); text-align: left; }
+
+        #master-admin-panel {
+            display: none; margin-top: 50px; padding: 30px;
+            background: rgba(255, 75, 43, 0.05);
+            border: 1px dashed var(--admin); border-radius: 20px;
+            animation: pulseAdmin 2s infinite alternate;
+        }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); justify-content: center; align-items: center; z-index: 999; }
+        .modal-content { background: #0d1117; padding: 40px; border-radius: 24px; border: 1px solid var(--neon); width: 380px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h1>SURΛJ FF</h1>
+        <p style="color: #8b949e; margin-bottom: 30px;">AUTHENTICATION REQUIRED</p>
+        <input type="tel" id="userMobile" placeholder="Mobile Number">
+        <input type="password" id="userPass" placeholder="Access Password">
+        <button type="button" class="btn" onclick="checkAccess()">Enter Server</button>
+        <p id="error-msg" style="color: var(--admin); margin-top: 15px; font-weight: 600;"></p>
+    </div>
+
+    <div id="dashboard-screen">
+        <div id="welcome-message" class="welcome-text">WELCOME PRIVATE SERVER</div>
+        <p style="color: #2ecc71; letter-spacing: 3px;">● SYSTEM ONLINE</p>
+
+        <div style="background: var(--glass); padding: 20px; border-radius: 15px; border-left: 4px solid gold; text-align: left; margin: 30px 0;">
+            <span style="color: gold; font-weight: bold;">ROOM INFO:</span> 
+            ID: <span id="disp-id">--</span> | PASS: <span id="disp-pass">--</span>
+        </div>
+
+        <div class="work-grid">
+            <div class="task-card" onclick="openModal('entry-modal')">
+                <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
+                <h3>Data Entry</h3>
+                <p style="color: #8b949e;">Register teams & players</p>
+            </div>
+            <div class="task-card admin-only" style="display:none;" onclick="openModal('result-modal')">
+                <div style="font-size: 40px; margin-bottom: 10px; color: var(--admin);">🏆</div>
+                <h3 style="color: var(--admin);">Declare Winner</h3>
+                <p style="color: #8b949e;">Update match results</p>
+            </div>
+            <div class="task-card admin-only" style="display:none;" onclick="openModal('room-modal')">
+                <div style="font-size: 40px; margin-bottom: 10px; color: var(--admin);">🔑</div>
+                <h3 style="color: var(--admin);">Room Control</h3>
+                <p style="color: #8b949e;">Change ID and Password</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Team</th><th>Player</th><th>UID</th><th>Location</th><th>Added By</th><th id="admin-action-header" style="display:none;">Action</th></tr>
+                </thead>
+                <tbody id="player-list-body"></tbody>
+            </table>
+        </div>
+
+        <div id="master-admin-panel">
+            <h3 style="color: var(--admin); margin: 0 0 20px 0;">MASTER CONTROL [SURAJ ONLY]</h3>
+            <div style="display: flex; gap: 15px;">
+                <input type="text" id="newN" placeholder="Name">
+                <input type="tel" id="newM" placeholder="Mobile">
+                <input type="text" id="newP" placeholder="Pass">
+            </div>
+            <button class="btn" style="background: var(--admin); color: #fff;" onclick="alert('Access Saved!')">Save New Member</button>
+        </div>
+
+        <button onclick="location.reload()" style="margin-top: 50px; background: none; border: none; color: #555; cursor: pointer;">Disconnect Server</button>
+    </div>
+
+    <div id="entry-modal" class="modal">
+        <div class="modal-content">
+            <h2>Player Entry</h2>
+            <input type="text" id="tName" placeholder="Team Name">
+            <input type="text" id="tLoc" placeholder="Location">
+            <input type="text" id="pName" placeholder="Player Name">
+            <input type="text" id="pUid" placeholder="FF UID">
+            <button class="btn" onclick="savePlayer()">Save Data</button>
+            <button class="btn" style="background:none; color:#888; margin-top:10px;" onclick="closeModal('entry-modal')">Close</button>
+        </div>
+    </div>
+
+    <div id="room-modal" class="modal">
+        <div class="modal-content">
+            <h2>Room Control</h2>
+            <input type="text" id="rid" placeholder="Room ID">
+            <input type="text" id="rpas" placeholder="Room Pass">
+            <button class="btn" onclick="setRoom()">Update Room</button>
+            <button class="btn" style="background:none; color:#888;" onclick="closeModal('room-modal')">Close</button>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2>Set Winner</h2>
+            <div id="team-list"></div>
+            <button class="btn" style="background:none; color:#888;" onclick="closeModal('result-modal')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const membersList = [
+            { name: "Uday", mobile: "9506591022", pass: "uday@22" },
+            { name: "Dipanshu", mobile: "8252302445", pass: "dipanshu@45" },
+            { name: "Rajveer", mobile: "8604642863", pass: "raj@63" },
+            { name: "Suraj", mobile: "7355098747", pass: "suraj@143" }
+        ];
+
+        let currentUser = "";
+        let isAdmin = false;
+
+        function checkAccess() {
+            let m = document.getElementById('userMobile').value.trim();
+            let p = document.getElementById('userPass').value.trim();
+            let f = membersList.find(x => x.mobile === m && x.pass === p);
+
+            if(f) {
+                currentUser = f.name;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'block';
+
+                // Fixed the Welcome message to always be "WELCOME PRIVATE SERVER"
+                document.getElementById('welcome-message').innerText = "WELCOME PRIVATE SERVER";
+
+                if(f.mobile === "7355098747") {
+                    isAdmin = true;
+                    document.querySelectorAll('.admin-only').forEach(e => e.style.display = "block");
+                    document.getElementById('admin-action-header').style.display = "table-cell";
+                    document.getElementById('master-admin-panel').style.display = "block";
+                }
+                loadPlayers(); loadRoom();
+            } else { document.getElementById('error-msg').innerText = "INVALID ACCESS CODE"; }
+        }
+
+        function openModal(id) { 
+            document.getElementById(id).style.display = 'flex'; 
+            if(id === 'result-modal') loadTeams();
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function savePlayer() {
+            let p = JSON.parse(localStorage.getItem('ff_pro')) || [];
+            p.push({
+                t: document.getElementById('tName').value,
+                l: document.getElementById('tLoc').value,
+                n: document.getElementById('pName').value,
+                u: document.getElementById('pUid').value,
+                by: currentUser
+            });
+            localStorage.setItem('ff_pro', JSON.stringify(p));
+            closeModal('entry-modal'); loadPlayers();
+        }
+
+        function loadPlayers() {
+            let p = JSON.parse(localStorage.getItem('ff_pro')) || [];
+            let h = "";
+            p.forEach((x, i) => {
+                h += `<tr><td>${x.t}</td><td>${x.n}</td><td>${x.u}</td><td>${x.l}</td><td>${x.by}</td>
+                ${isAdmin ? `<td><button onclick="del(${i})" style="color:red; background:none; border:none; cursor:pointer;">🗑️</button></td>` : ""}</tr>`;
+            });
+            document.getElementById('player-list-body').innerHTML = h;
+        }
+
+        function del(i) {
+            let p = JSON.parse(localStorage.getItem('ff_pro'));
+            p.splice(i, 1);
+            localStorage.setItem('ff_pro', JSON.stringify(p));
+            loadPlayers();
+        }
+
+        function setRoom() {
+            localStorage.setItem('rid', document.getElementById('rid').value);
+            localStorage.setItem('rpas', document.getElementById('rpas').value);
+            loadRoom(); closeModal('room-modal');
+        }
+
+        function loadRoom() {
+            document.getElementById('disp-id').innerText = localStorage.getItem('rid') || "NOT SET";
+            document.getElementById('disp-pass').innerText = localStorage.getItem('rpas') || "NOT SET";
+        }
+
+        function loadTeams() {
+            let p = JSON.parse(localStorage.getItem('ff_pro')) || [];
+            let t = [...new Set(p.map(x => x.t))];
+            let h = "";
+            t.forEach(x => {
+                h += `<button class="btn" style="margin-bottom:10px;" onclick="alert('Winner Set!')">${x} 🏆</button>`;
+            });
+            document.getElementById('team-list').innerHTML = h || "No Teams";
+        }
+    </script>
+</body>
+</html>
